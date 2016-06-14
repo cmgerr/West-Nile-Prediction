@@ -13,22 +13,6 @@ train.head()
 
 # check dtypes and null values
 train.info()
-
-# Sort by date and change to datetime
-train.sort_values(by='Date', inplace=True)
-# set index to date
-train.set_index('Date')
-# convert to datetime
-train.index = train.index.to_datetime()
-# add month column
-train['Month'] = train.index.month
-train['Year'] = train.index.year
-# check if mosquito vars should be categorical
-train.Species.value_counts()
-
-# create dummy vars for mosquito types
-train = pd.get_dummies(train, columns = ['Species'])
-
 # delete address fields because location has already been translated
 # into latitude and longitude
 del train['Address']
@@ -37,20 +21,41 @@ del train['Street']
 del train['AddressNumberAndStreet']
 del train['AddressAccuracy']
 
+# aggregate observations that are only distinct because of
+# hitting the 50 mosquito cap
+grouped = train.groupby(['Date', 'Species', 'Trap', 'Latitude', 'Longitude'])
+aggregated = pd.DataFrame(grouped.agg({'NumMosquitos': np.sum, 'WnvPresent': np.max})).reset_index()
+aggregated.sort_values(by = 'NumMosquitos', ascending = False)
+# Sort by date and change to datetime
+aggregated.sort_values(by='Date', inplace=True)
+# set index to date
+aggregated.set_index('Date')
+# convert to datetime
+aggregated.index = aggregated.index.to_datetime()
+# add month column
+aggregated['Month'] = aggregated.index.month
+aggregated['Year'] = aggregated.index.year
+
+# check if mosquito vars should be categorical
+aggregated.Species.value_counts()
+
+# create dummy vars for mosquito types
+aggregated = pd.get_dummies(aggregated, columns = ['Species'])
+
+
+
 # look at dispersion of traps geographically
 
-plt.scatter(train.Longitude, train.Latitude)
+plt.scatter(aggregated.Longitude, aggregated.Latitude)
 
 # look at dispersion of virus incidence geographically
-plt.scatter(train.Longitude, train.Latitude, c = train.WnvPresent, alpha = .05)
+plt.scatter(aggregated.Longitude, aggregated.Latitude, c = aggregated.WnvPresent, alpha = .05)
 
 # look at distribution of number of mosquitos
-plt.hist(train.NumMosquitos, 50)
+plt.hist(aggregated.NumMosquitos, 50)
 
 
 # look at incidence of cases over time
-train[['Date', 'WnvPresent']].groupby('Date').sum().plot(kind='bar')
+aggregated[['Date', 'WnvPresent']].groupby('Date').sum().plot(kind='bar')
 
 # need to further explore seasonality of the virus
-# we also need to aggregate observations that are only separate because of
-# having passed the 50 mosquito threshold - next steps!
