@@ -83,24 +83,35 @@ def distance_on_unit_sphere(lat1, long1, lat2, long2):
     # in your favorite set of units to get length.
     return arc
 
+# weather stations 1 and 2 lat/longitude
+station_1_lat = 41.995
+station_1_lon = -87.933
+station_2_lat = 41.786
+station_2_lon = -87.752
 # function to calculate whether station 1 or 2 (from weather.csv) is closer
 def closest_station(lat, lon):
-    station_1_lat = 41.995
-    station_1_lon = -87.933
-    station_2_lat = 41.786
-    station_2_lon = -87.752
     if (distance_on_unit_sphere(lat, lon, station_1_lat, station_1_lon) <
         distance_on_unit_sphere(lat, lon, station_2_lat, station_2_lon)):
         return 1
     else: return 2
 
 # add station to indicate whether station 1 or 2 is closer
-aggregated['Closest_Station'] = [closest_station(a,b) for (a, b) in zip(aggregated.Latitude, aggregated.Longitude)]
+aggregated['Station'] = [closest_station(a,b) for (a, b) in zip(aggregated.Latitude, aggregated.Longitude)]
 
+aggregated.Station.value_counts()
 # look at distribution of data
 aggregated.describe()
+
+# write to a csv
+
+aggregated.to_csv('../Assets/train_cleaned.csv', encoding= 'utf-8')
+
+## EDA ON TRAIN DATA
 # look at dispersion of traps geographically
-plt.scatter(aggregated.Longitude, aggregated.Latitude, c = aggregated.Closest_Station)
+plt.scatter(aggregated.Longitude, aggregated.Latitude, c = aggregated.Station)
+plt.scatter([station_1_lon, station_2_lon], [station_1_lat,station_2_lat], c = 'r')
+plt.show()
+
 
 # look at dispersion of virus incidence geographically
 plt.scatter(aggregated.Longitude, aggregated.Latitude, c = aggregated.WnvPresent, alpha = .01)
