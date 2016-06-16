@@ -5,7 +5,7 @@ import seaborn as sns
 %matplotlib inline
 
 train = pd.read_csv('../Assets/train_cleaned.csv')
-weather = pd.read_csv('../Assets/weather_clean.csv')
+weather = pd.read_csv('../Assets/weather_clean2.csv')
 
 train.columns
 weather.columns
@@ -16,7 +16,7 @@ merged.shape
 
 merged[['Station', 'Trap']].sort_values('Trap')
 
-merged.Station.value_counts(0)
+merged.Station.value_counts()
 
 # Cleaning
 # Date column to date_time
